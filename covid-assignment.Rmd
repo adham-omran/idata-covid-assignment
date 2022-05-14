@@ -16,11 +16,12 @@ data <- read.csv("data.csv")
 ## Variable Information
 
 Sampling Variables
-|:----:|:---------------------------------------:|
-| ID   | Respondant id number                    |
-| DATE | Interview Date                          |
-| Q1   | Governorate                             |
-| WT   | Weight for the probability of selection |
+| Variable | Description                             |
+|:--------:|:---------------------------------------:|
+| ID       | Respondant id number                    |
+| DATE     | Interview Date                          |
+| Q1       | Governorate                             |
+| WT       | Weight for the probability of selection |
 
 
 | Code | Country |
