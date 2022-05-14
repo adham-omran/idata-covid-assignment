@@ -1,0 +1,69 @@
+# Covid Assignment
+
+Import libraries
+```
+library(readr)
+library(dplyr)
+library(lubridate)
+library(tidyr)
+```
+
+Import data
+```
+data <- read.csv("data.csv")
+```
+
+## Variable Information
+
+Sampling Variables
+|:----:|:---------------------------------------:|
+| ID   | Respondant id number                    |
+| DATE | Interview Date                          |
+| Q1   | Governorate                             |
+| WT   | Weight for the probability of selection |
+
+
+| Code | Country |
+|:----:|:-------:|
+| 1    | ALGERIA |
+| 7    | IRAQ    |
+| 8    | JORDAN  |
+| 9    | KUWAIT  |
+| 10   | LEBANON |
+| 11   | LIBYA   |
+| 13   | MOROCCO |
+| 21   | TUNISIA |
+
+
+Create a tidy dataset for Iraq, relocate the WT column to before the questions
+begin.
+```
+iraq <- data |>
+  filter(COUNTRY == 7) |>
+  select(-COUNTRY) |>
+  relocate(WT, .before = Q1)
+```
+
+The pivot_longer() creates tidy data.
+```
+iraq_tidy <- iraq |>
+  pivot_longer(cols = 5:105, names_to = "Question",
+               values_to = "Answers") |>
+  mutate(DATE = ymd(DATE)) |>
+```
+
+Summary stats of Age
+```
+iraq_tidy |>
+  filter(Question == "Q1001") |>
+  summary()
+```
+The youngest participant was 18 years old, the oldest was 70 years old, the mean
+(average) was around 35 years old while the median was 33.
+
+```
+iraq_tidy |>
+  filter(Question == "Q1002") |>
+  count(Answer)
+```
+There are 515 females and 501 males.
