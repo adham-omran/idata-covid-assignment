@@ -1,27 +1,30 @@
 # Covid Assignment
 
 Import libraries
-```
+```{r}
 library(readr)
 library(dplyr)
 library(lubridate)
+library(ggplot2)
 library(tidyr)
+library(rmarkdown)
 ```
 
 Import data
-```
+```{r}
 data <- read.csv("data.csv")
 ```
 
 ## Variable Information
 
 Sampling Variables
+
 | Variable | Description                             |
 |:--------:|:---------------------------------------:|
 | ID       | Respondant id number                    |
 | DATE     | Interview Date                          |
 | Q1       | Governorate                             |
-| WT       | Weight for the probability of selection |
+| WT       | Weight for the probability of selection | 
 
 
 | Code | Country |
@@ -38,7 +41,8 @@ Sampling Variables
 
 Create a tidy dataset for Iraq, relocate the WT column to before the questions
 begin.
-```
+
+```{r}
 iraq <- data |>
   filter(COUNTRY == 7) |>
   select(-COUNTRY) |>
@@ -46,25 +50,45 @@ iraq <- data |>
 ```
 
 The pivot_longer() creates tidy data.
-```
+
+```{r}
 iraq_tidy <- iraq |>
   pivot_longer(cols = 5:105, names_to = "Question",
                values_to = "Answers") |>
-  mutate(DATE = ymd(DATE)) |>
+  mutate(DATE = ymd(DATE))
 ```
 
 Summary stats of Age
-```
+```{r}
 iraq_tidy |>
   filter(Question == "Q1001") |>
   summary()
 ```
+
 The youngest participant was 18 years old, the oldest was 70 years old, the mean
 (average) was around 35 years old while the median was 33.
 
-```
+```{r}
 iraq_tidy |>
   filter(Question == "Q1002") |>
-  count(Answer)
+  count(Answers)
 ```
 There are 515 females and 501 males.
+
+## Visualization
+
+Histogram of age groups
+```{r}
+iraq_tidy_ages <- 
+  iraq_tidy |>
+    filter(Question == "Q204A_1" & Answers < 10)
+
+ggplot(iraq_tidy_ages, aes(x = Answers)) +
+  geom_bar(fill = "white", colour = "black", width = 0.50) +
+  theme_bw()
+#  geom_histogram(binwidth = 1, fill = "white", colour = "black")
+```
+## Governmate Analysis
+Trust in the Government and Courts
+
+Trust in the Armed forces and Religious leaders
