@@ -12,6 +12,7 @@ library(rmarkdown)
 
 Import data
 ```{r}
+setwd("~/Dropbox/code/r/iData/assignment-covid/git-repo")
 data <- read.csv("data.csv")
 ```
 
@@ -75,18 +76,18 @@ iraq_tidy |>
 ```
 There are 515 females and 501 males.
 
-## Visualization
+## Visualizations
 
-Histogram of age groups
+Quick bar graph of any question.
 ```{r}
-iraq_tidy_ages <- 
+questionNumber = "Q1005D"
+iraq_tidy_bar_graph <- 
   iraq_tidy |>
-    filter(Question == "Q204A_1" & Answers < 10)
+    filter(Question == questionNumber & Answers < 10)
 
-ggplot(iraq_tidy_ages, aes(x = Answers)) +
+ggplot(iraq_tidy_bar_graph, aes(x = Answers)) +
   geom_bar(fill = "white", colour = "black", width = 0.50) +
   theme_bw()
-#  geom_histogram(binwidth = 1, fill = "white", colour = "black")
 ```
 ## Governmate Analysis
 Trust in the Government and Courts
