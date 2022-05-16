@@ -80,16 +80,71 @@ There are 515 females and 501 males.
 
 Quick bar graph of any question.
 ```{r}
-questionNumber = "Q1005D"
+questionNumber = "Q609"
 iraq_tidy_bar_graph <- 
   iraq_tidy |>
     filter(Question == questionNumber & Answers < 10)
 
 ggplot(iraq_tidy_bar_graph, aes(x = Answers)) +
-  geom_bar(fill = "white", colour = "black", width = 0.50) +
+#  geom_bar(fill = "white", colour = "black", width = 0.50) +
+  geom_histogram(fill = "white", colour = "black", bins = 3) +
   theme_bw()
 ```
 ## Governmate Analysis
 Trust in the Government and Courts
 
 Trust in the Armed forces and Religious leaders
+
+## Age vs Religion
+
+```{r}
+#iraq_tidy_age_18_24 <-
+#  iraq_tidy |>
+#    filter(Question == "Q1012" | Question == "Q1001" & Answers >= 18 & Answers <= 24, .preserve = TRUE)
+
+#iraq_tidy_age_25_30 <-
+#  iraq_tidy |>
+#    filter(Question == "Q1012" | Question == "Q1001" & Answers >= 25 & Answers <= 30, .preserve = TRUE)
+
+age_religiousness <- iraq |>
+  select(Q609, Q1001) |>
+  filter(Q1001 <= 24 & Q1001 >= 18 & Q609 < 10)
+
+age_religiousness_2 <- iraq |>
+  select(Q609, Q1001) |>
+  filter(Q1001 <= 31 & Q1001 >= 25 & Q609 < 10)
+
+ggplot(age_religiousness, aes(x = Q609)) +
+  geom_bar(fill = "white", colour = "black")
+
+ggplot(age_religiousness_2, aes(x = Q609)) +
+  geom_bar(fill = "white", colour = "black")
+
+
+```
+
+
+
+
+
+## Please work
+
+```{r}
+iraq$groups <- cut(iraq$Q1001, breaks = c(17,24,30,36,42,48,54,60,66,72,Inf))
+
+table(cut(iraq$Q1001, breaks=c(17,24,30,36,42,48,54,60,66,72,Inf)))
+
+table(cut(iraq$Q609, breaks=c(1,2,3,Inf)))
+```
+
+## Mutate approach NOT for by age
+```{r}
+data_values_range <- iraq |>               # Aggregate values in range
+  mutate(ranges = cut(Q609,
+                      c(1,2,3.4))) |> 
+  group_by(ranges) |>
+  dplyr::summarize(sums = sum(Q609)) |>
+  as.data.frame()
+data_values_range                                  # Print aggregated values in range
+
+```
