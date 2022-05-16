@@ -146,5 +146,59 @@ data_values_range <- iraq |>               # Aggregate values in range
   dplyr::summarize(sums = sum(Q609)) |>
   as.data.frame()
 data_values_range                                  # Print aggregated values in range
+```
 
+## Change column names
+
+```{r}
+data_clean <- data |>
+  ## Rename Section III questions.
+  rename(currentEconomicSituation                    = Q101,
+         futureEconomicSituation                     = Q102,
+         statementWorriedFoodRunOut                  = Q112_1,
+         statementFoodDidNotLastAndWeDidNotHaveMoney = Q112_2,
+         importantIssueToFocusOn                     = Q118) |>
+  ## Rename Section V question.
+  rename(trustInGov                      = Q201A_1,
+         trustInCourt                    = Q201A_2,
+         trustInArmy                     = Q201B_6,
+         trustInReligiousLeaders         = Q201B_13,
+         satisfactionWithGovPerformance  = Q204A_1,
+         satisfactionWithEducationSystem = Q204A_2,
+         satisfactionWithHealthcare      = Q204A_3,
+         guarnteeOfFreedomOfOpinions     = Q521_1 ,
+         guarnteeOfFreedomOfMedia        = Q521_2 ,
+         guarnteeOfFreedomOfPortest      = Q521_4 ,
+         performanceOnSecurity           = Q204_11,
+         performanceOnLowPrices          = Q204_20,
+         performanceOnCovidResponse      = Q204_25,
+         corruptionInAgencies            = Q210   ,
+         workAgainstCorruption           = Q211  ) |>
+  ## Rename demographics columns
+  rename(levelOfEducation     = Q1003,
+         socialStatus         = Q1010,
+         children             = Q1010B1,
+         childrenInSchool     = Q1010B2,
+         householdPeople      = Q1014C,
+         workStatus           = Q1005,
+         pension              = Q1005B,
+         lookingForJob        = Q1005C,
+         whyNotLookingForJob  = Q1005D,
+         householdWork        = Q1005E,
+         workSector           = Q1006A,
+         industryDescription  = Q1006B_CODE,
+         netHouseholdIncome   = Q1016,
+         religion             = Q1012,
+         religionDenomination = Q1012A,
+         ethnicity            = Q1012B,
+         religiousOrNot       = Q609)
+
+# | [a-z]*\ *|\ q[0-9]*_?[0-9]*\ *|
+```
+
+Drop the columns whose name starts with Q
+```{r}
+data_clean <- data_clean[, -grep("Q[0-9]*", colnames(data_clean))]
+
+colnames(data_clean)
 ```
