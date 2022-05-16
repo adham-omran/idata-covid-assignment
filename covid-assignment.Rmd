@@ -149,9 +149,20 @@ data_values_range                                  # Print aggregated values in 
 ```
 
 ## Change column names
-
+The team agreed to use a camel case for the column names.
 ```{r}
 data_clean <- data |>
+  ## Rename sampling variables
+  rename(x = X,
+         country = COUNTRY,
+         id = ID,
+         data = DATE,
+         govornorate = Q1,
+         citySize = Q13A,
+         probabilityOfSelection = WT) |>
+  ## Rename demogrpahics
+  rename(age    = Q1001,
+         gender = Q1002) |>
   ## Rename Section III questions.
   rename(currentEconomicSituation                    = Q101,
          futureEconomicSituation                     = Q102,
