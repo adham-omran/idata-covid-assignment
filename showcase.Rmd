@@ -1,0 +1,186 @@
+# Showcase
+
+## How we cleaned the data
+### Column-based approach
+- Chose the columns that we will interact with, renamed them using camel case.
+
+#### Code
+
+Import libraries
+```{r, message=FALSE}
+library(readr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(tidyr)
+library(rmarkdown)
+```
+
+Import data
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/Dropbox/code/r/iData/assignment-covid/git-repo")
+getwd()
+```
+
+```{r}
+data <- read.csv("data.csv")
+```
+
+```{r}
+dataColumns <- data |>
+  ## Rename sampling variables
+  rename(x = X,
+         country = COUNTRY,
+         id = ID,
+         date = DATE,
+         govornorate = Q1,
+         citySize = Q13A,
+         probabilityOfSelection = WT) |>
+  ## Rename demographics
+  rename(age    = Q1001,
+         gender = Q1002) |>
+  ## Rename Section III questions.
+  rename(currentEconomicSituation                    = Q101,
+         futureEconomicSituation                     = Q102,
+         statementWorriedFoodRunOut                  = Q112_1,
+         statementFoodDidNotLastAndWeDidNotHaveMoney = Q112_2,
+         importantIssueToFocusOn                     = Q118) |>
+  ## Rename Section V question.
+  rename(trustInGov                      = Q201A_1,
+         trustInCourt                    = Q201A_2,
+         trustInArmy                     = Q201B_6,
+         trustInReligiousLeaders         = Q201B_13,
+         satisfactionWithGovPerformance  = Q204A_1,
+         satisfactionWithEducationSystem = Q204A_2,
+         satisfactionWithHealthcare      = Q204A_3,
+         guarnteeOfFreedomOfOpinions     = Q521_1 ,
+         guarnteeOfFreedomOfMedia        = Q521_2 ,
+         guarnteeOfFreedomOfPortest      = Q521_4 ,
+         performanceOnSecurity           = Q204_11,
+         performanceOnLowPrices          = Q204_20,
+         performanceOnCovidResponse      = Q204_25,
+         corruptionInAgencies            = Q210   ,
+         workAgainstCorruption           = Q211  ) |>
+  ## Rename demographics columns
+  rename(levelOfEducation     = Q1003,
+         socialStatus         = Q1010,
+         children             = Q1010B1,
+         childrenInSchool     = Q1010B2,
+         householdPeople      = Q1014C,
+         workStatus           = Q1005,
+         pension              = Q1005B,
+         lookingForJob        = Q1005C,
+         whyNotLookingForJob  = Q1005D,
+         householdWork        = Q1005E,
+         workSector           = Q1006A,
+         industryDescription  = Q1006B_CODE,
+         netHouseholdIncome   = Q1016,
+         religion             = Q1012,
+         religionDenomination = Q1012A,
+         ethnicity            = Q1012B,
+         religiousOrNot       = Q609)
+```
+
+Drop the columns whose name starts with Q
+```{r}
+dataColumns <- dataColumns[, -grep("Q[0-9]*", colnames(dataColumns))]
+
+colnames(dataColumns)
+```
+
+Filter for Iraq
+```{r}
+dataColumns <- 
+  dataColumns |> 
+    filter(country == 7)
+```
+
+### Row-based (tidy) approach
+- Use Wickham's tidy data as a framework.
+- Create a long dataset that enables quick and easy analysis.
+- Learned about tibbles. 
+
+  "A modern reimagining of the data.frame, Tibbles are data.frames that are lazy
+  and surly: they do less (i.e. they don’t change variable names or types, and
+  don’t do partial matching) and complain more (e.g. when a variable does not
+  exist).
+
+- [ ] Need to look more into merging tidy datasets.
+
+#### Code 
+
+```{r}
+dataRow <- data |>
+  filter(COUNTRY == 7) |>
+  select(-COUNTRY) |>
+  relocate(WT, .before = Q1)
+```
+
+The pivot_longer() creates tidy data.
+
+```{r}
+dataRow <- dataRow |>
+  pivot_longer(cols = 5:105, names_to = "Question",
+               values_to = "Answers") |>
+  mutate(DATE = ymd(DATE))
+```
+
+```{r}
+head(dataRow)
+```
+
+Quick bar graph of any question.
+```{r}
+questionName = "Q1001"
+iraq_tidy_bar_graph <- 
+  dataRow |>
+      filter(Question == questionName)
+
+ggplot(iraq_tidy_bar_graph, aes(x = Answers)) +
+  geom_bar(fill = "white", colour = "black", width = 0.50) +
+#  geom_density(fill = "white", colour = "black") +
+  theme_bw()
+```
+
+### Findings
+- Age spikes at {30, 40, 25, 50, ...} What to do with them? One possibility is
+  to explore in 5-year increments.
+
+## Analysis
+- Age, gender and variables like religion, social status, etc.
+- Linear regression between variables.
+- Ethnicity and opinions on the Economic situation and Governmental situation.
+- Ethnicity and work status.
+
+### Age and Religon 
+```{r}
+dataAgeRel <-
+  dataColumns |>
+  select(age, religiousOrNot) |>
+  filter(religiousOrNot < 4) |>
+  filter(age < 90) 
+
+ggplot(dataAgeRel, aes(x = age, y = religiousOrNot, fill = religiousOrNot)) +
+  geom_col()
+  
+stacked_bar_graph <-
+  dataColumns |>
+  select(age, religiousOrNot) |>
+  filter(religiousOrNot < 4) |>
+  filter(age < 90) |>
+  group_by(religiousOrNot, age) |>
+  count()
+
+colnames(stacked_bar_graph)
+# "religiousOrNot" "age"  "n"             
+
+ggplot(stacked_bar_graph, aes(x = age, y = n, fill = religiousOrNot)) +
+  geom_col()
+```
+
+### Inferential Analysis
+- Is this data representative?
+  - Is the gender representative?
+  - Is the ethnicity representative?
+
