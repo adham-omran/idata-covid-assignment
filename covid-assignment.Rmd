@@ -11,8 +11,13 @@ library(rmarkdown)
 ```
 
 Import data
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/Dropbox/code/r/iData/assignment-covid/git-repo")
+getwd()
+```
+
 ```{r}
-setwd("~/Dropbox/code/r/iData/assignment-covid/git-repo")
 data <- read.csv("data.csv")
 ```
 
@@ -44,7 +49,7 @@ Create a tidy dataset for Iraq, relocate the WT column to before the questions
 begin.
 
 ```{r}
-iraq <- data |>
+dataRow <- data |>
   filter(COUNTRY == 7) |>
   select(-COUNTRY) |>
   relocate(WT, .before = Q1)
@@ -53,24 +58,28 @@ iraq <- data |>
 The pivot_longer() creates tidy data.
 
 ```{r}
-iraq_tidy <- iraq |>
+dataRow <- dataRow |>
   pivot_longer(cols = 5:105, names_to = "Question",
                values_to = "Answers") |>
   mutate(DATE = ymd(DATE))
 ```
 
+```{r}
+head(dataRow)
+```
+
 Summary stats of Age
 ```{r}
-iraq_tidy |>
+dataRow |>
   filter(Question == "Q1001") |>
-  summary()
+  summary(Answers)
 ```
 
 The youngest participant was 18 years old, the oldest was 70 years old, the mean
 (average) was around 35 years old while the median was 33.
 
 ```{r}
-iraq_tidy |>
+dataRow |>
   filter(Question == "Q1002") |>
   count(Answers)
 ```
@@ -82,7 +91,7 @@ Quick bar graph of any question.
 ```{r}
 questionNumber = "Q609"
 iraq_tidy_bar_graph <- 
-  iraq_tidy |>
+  dataRow |>
     filter(Question == questionNumber & Answers < 10)
 
 ggplot(iraq_tidy_bar_graph, aes(x = Answers)) +
@@ -98,14 +107,6 @@ Trust in the Armed forces and Religious leaders
 ## Age vs Religion
 
 ```{r}
-#iraq_tidy_age_18_24 <-
-#  iraq_tidy |>
-#    filter(Question == "Q1012" | Question == "Q1001" & Answers >= 18 & Answers <= 24, .preserve = TRUE)
-
-#iraq_tidy_age_25_30 <-
-#  iraq_tidy |>
-#    filter(Question == "Q1012" | Question == "Q1001" & Answers >= 25 & Answers <= 30, .preserve = TRUE)
-
 age_religiousness <- iraq |>
   select(Q609, Q1001) |>
   filter(Q1001 <= 24 & Q1001 >= 18 & Q609 < 10)
@@ -119,15 +120,11 @@ ggplot(age_religiousness, aes(x = Q609)) +
 
 ggplot(age_religiousness_2, aes(x = Q609)) +
   geom_bar(fill = "white", colour = "black")
-
-
 ```
 
 
 
-
-
-## Please work
+## Breaks attempt #1
 
 ```{r}
 iraq$groups <- cut(iraq$Q1001, breaks = c(17,24,30,36,42,48,54,60,66,72,Inf))
@@ -137,7 +134,7 @@ table(cut(iraq$Q1001, breaks=c(17,24,30,36,42,48,54,60,66,72,Inf)))
 table(cut(iraq$Q609, breaks=c(1,2,3,Inf)))
 ```
 
-## Mutate approach NOT for by age
+## Breaks attempt #2
 ```{r}
 data_values_range <- iraq |>               # Aggregate values in range
   mutate(ranges = cut(Q609,
@@ -151,7 +148,7 @@ data_values_range                                  # Print aggregated values in 
 ## Change column names
 The team agreed to use a camel case for the column names.
 ```{r}
-data_clean <- data |>
+dataColumns <- data |>
   ## Rename sampling variables
   rename(x = X,
          country = COUNTRY,
@@ -209,7 +206,64 @@ data_clean <- data |>
 
 Drop the columns whose name starts with Q
 ```{r}
-data_clean <- data_clean[, -grep("Q[0-9]*", colnames(data_clean))]
+dataColumns <- dataColumns[, -grep("Q[0-9]*", colnames(dataColumns))]
 
-colnames(data_clean)
+colnames(dataColumns)
+
+dataColumns <- 
+  dataColumns |> 
+  filter(country == 7)
+```
+
+## Cultivar data frame for stacked bar graph
+Culitvar is the answer variable, the other variable is the age.
+
+```{r}
+# stacked_bar_graph <-
+variable_two = "religiousOrNot"
+
+
+data_clean_bar <-
+  dataColumns |>
+  select(age, variable_two) |>
+  filter(religiousOrNot < 4) |>
+  filter(age < 90) 
+
+ggplot(data_clean_bar, aes(x = age, y = religiousOrNot, fill = religiousOrNot)) +
+  geom_col()
+  
+stacked_bar_graph <-
+  dataColumns |>
+  select(age, religiousOrNot) |>
+  filter(religiousOrNot < 4) |>
+  filter(age < 90) |>
+  group_by(religiousOrNot, age) |>
+  count()
+
+colnames(stacked_bar_graph)
+# "religiousOrNot" "age"  "n"             
+
+ggplot(stacked_bar_graph, aes(x = age, y = n, fill = religiousOrNot)) +
+  geom_col()
+```
+
+## Age investigation
+```{r}
+data_clean_age_counts <- data_clean |>
+  select(age) |>
+  filter(age < 100) |>
+  group_by(age) |>
+  count()
+
+data_clean_age_counts[order(data_clean_age_counts$n, decreasing = T), ]
+
+data_clean_ages <-
+  data_clean |>
+  select(age) |>
+  filter(age < 90)
+  
+ggplot(data_clean_ages, aes(x = age)) +
+  geom_bar(fill = "white", colour = "black", width = 0.50) +
+#  geom_histogram(fill = "white", colour = "black", bins = 3) +
+  theme_bw()    
 ```
